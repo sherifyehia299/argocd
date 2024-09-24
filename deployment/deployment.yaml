@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-ecommerce-deployment
+  namespace: django
+  labels:
+    app: django-ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django-ecommerce
+  template:
+    metadata:
+      labels:
+        app: django-ecommerce
+    spec:
+      imagePullSecrets:
+      - name: gitlab-token-auth
+      containers:
+      - name: django-ecommerce
+        image: registry.gitlab.com/django-ecommerce4/django-ecommerce:v3
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "128Mi"  # Minimum memory request
+            cpu: "200m"      # Minimum CPU request
+            ephemeral-storage: "500Mi"  # Minimum ephemeral storage request
+          limits:
+            memory: "256Mi"  # Maximum memory limit
+            cpu: "500m"      # Maximum CPU limit
+            ephemeral-storage: "1Gi"  # Maximum ephemeral storage limit
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-ecommerce-service
+  namespace: django
+spec:
+  selector:
+    app: django-ecommerce
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 30080
+  type: NodePort
